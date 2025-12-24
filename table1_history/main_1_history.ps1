@@ -32,12 +32,12 @@ $test_massage = Get-MgUserMailFolderMessage `
 -All
 $messages = Get-MgUserMailFolderMessage `
     -UserId $Global:userid `
-    -MailFolderId 'inbox'  `
-    -Filter "from/emailAddress/address eq 'no-reply@pandasecurity.com' and receivedDateTime ge $today and contains(subject,'history')"
-    #-Filter "receivedDateTime ge '$($today)' and from/emailAddress/address eq 'no-reply@pandasecurity.com'" 
-    #-Filter "receivedDateTime ge $today and contains(subject,'history')"
-    #-Filter "from/emailAddress/address eq 'no-reply@pandasecurity.com' and receivedDateTime ge $today and contains(subject,'history')"
-#-Filter "from/emailAddress/address eq '$($sender.mail)' and subject eq '$($sender.subject)' and receivedDateTime ge $today"  `
+    -MailFolderId  $Global:mailfolderId `  `
+    -Filter "from/emailAddress/address eq 'no-reply@pandasecurity.com' and receivedDateTime ge $today and contains(subject,'history')"`
+    -All  `
+    | Sort-Object receivedDateTime -Descending | `
+    Select-Object -First 1
+
 if (-not $messages) {
     Write-Error "No messages found, exiting script."
     exit
@@ -130,6 +130,7 @@ $results = foreach ($row in $rawObjects) {
     [PSCustomObject]$newRow
 }
 
+
 $chunks = Chunked -Iterable $results -Size 1200
 #$chunks = Chunked -Iterable $requests -Size 1200
 foreach ($chunk in $chunks) {
@@ -153,7 +154,8 @@ catch {
     Write-Error $_
 }
 finally {
-    Write-Host ""
+    $messages | ForEach-Object{Move-MgUserMessage -UserId $Global:userid -MessageId $_.id -DestinationId $Global:mailfolderId_move}
+        Write-Host ""
     Write-Host "Process completed. Window will close in 10 seconds..."
     Start-Sleep 10
 }
