@@ -183,7 +183,7 @@ catch {
     Write-Error $_
 }
 finally {
-    $messages | ForEach-Object{Move-MgUserMessage -UserId $Global:userid -MessageId $_.id -DestinationId $env::mailfolderId_move}
+    $messages | ForEach-Object{Move-MgUserMessage -UserId $Global:userid -MessageId $_.id -DestinationId $env:mailfolderId_move}
     Write-Host ""
     Write-Host "Process completed. Window will close in 10 seconds..."
     Start-Sleep 10

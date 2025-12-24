@@ -28,21 +28,20 @@ if (Test-Path $EnvFilePath) {
 else {
     Write-Warning "File .env not found at $EnvFilePath"
 }
-
 function Connect-MicrosoftGraphCert {
     [CmdletBinding()]
     param (
-        #[Parameter(Mandatory)]
         [string] $ClientId = $global:clientId,
-        #[Parameter(Mandatory)]
         [string] $TenantId = $global:tenantId,
-        #[Parameter(Mandatory)]
-        [string] $CertificateThumbprint  = $global:Thumbprint
+        #[string] $CertificateThumbprint = $global:Thumbprint
+        [string] $CertificateThumbprint
     )
+
     try {
+        # 🔹 หา certificate จากเครื่องก่อน
         $cert = Get-ChildItem Cert:\CurrentUser\My |
             Where-Object {
-                $_.Subject -like 'CN=GraphAPI*' -and
+                $_.Subject -like '*GrphAPI*' -and
                 $_.HasPrivateKey -and
                 $_.NotAfter -gt (Get-Date)
             } |
@@ -54,16 +53,14 @@ function Connect-MicrosoftGraphCert {
             Write-Verbose "Using local certificate: $($cert.Subject)"
         }
         elseif (-not $CertificateThumbprint) {
-            throw "Certificate CN=GraphAPI not found and global Thumbprint is empty"
+            throw "Certificate CN=GrphAPI not found and global Thumbprint is empty"
         }
-        
         else {
             Write-Verbose "Using global Thumbprint fallback"
         }
-    
-        Write-Verbose "Import Microsoft.Graph.Mail module"
+
         Import-Module Microsoft.Graph.Mail -ErrorAction Stop
-        Write-Verbose "Connecting to Microsoft Graph (App-only Certificate)"
+
         Connect-MgGraph `
             -ClientId $ClientId `
             -TenantId $TenantId `
@@ -77,6 +74,7 @@ function Connect-MicrosoftGraphCert {
         throw
     }
 }
+
 
 $TENANTS_LOADED = @{}
 # ดึงตัวแปรทั้งหมดที่ลงท้ายด้วย _CREDENTIAL, _APIKEY, _ACCOUNT
