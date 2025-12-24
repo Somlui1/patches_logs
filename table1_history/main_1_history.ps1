@@ -32,7 +32,7 @@ $test_massage = Get-MgUserMailFolderMessage `
 -All
 $messages = Get-MgUserMailFolderMessage `
     -UserId $Global:userid `
-    -MailFolderId  $Global:mailfolderId `  `
+    -MailFolderId  $env:mailFolderId `
     -Filter "from/emailAddress/address eq 'no-reply@pandasecurity.com' and receivedDateTime ge $today and contains(subject,'history')"`
     -All  `
     | Sort-Object receivedDateTime -Descending | `
@@ -154,7 +154,7 @@ catch {
     Write-Error $_
 }
 finally {
-    $messages | ForEach-Object{Move-MgUserMessage -UserId $Global:userid -MessageId $_.id -DestinationId $Global:mailfolderId_move}
+    $messages | ForEach-Object{Move-MgUserMessage -UserId $Global:userid -MessageId $_.id -DestinationId $env:mailfolderId_move}
         Write-Host ""
     Write-Host "Process completed. Window will close in 10 seconds..."
     Start-Sleep 10
