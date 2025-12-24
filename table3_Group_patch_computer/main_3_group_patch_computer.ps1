@@ -35,14 +35,16 @@ Connect-MicrosoftGraphCert
 # กำหนดวันที่สำหรับ Filter (วันนี้)
 $TodayDate = (Get-Date).ToString("yyyy-MM-dd")
 # ดึงอีเมลจาก Inbox ตามเงื่อนไข (ผู้ส่ง, หัวข้อ, วันที่)
-$Messages = Get-MgUserMailFolderMessage `
+$messages = Get-MgUserMailFolderMessage `
     -UserId $TargetUserId  `
-    -MailFolderId $MailFolder `
+    -MailFolderId $Global:mailfolderId `
     -Filter "from/emailAddress/address eq '$($SenderConfig.EmailAddress)' and subject eq '$($SenderConfig.Subject)' and receivedDateTime ge $TodayDate"  `
-    -Top 1 
+    -All  `
+    | Sort-Object receivedDateTime -Descending | `
+    Select-Object -First 1
 
 # ตรวจสอบว่ามีอีเมลหรือไม่ ถ้าไม่มีให้จบการทำงาน
-if (-not $Messages) {
+if (-not $messages) {
     Write-Error "No messages found, exiting script."
     exit
 }
@@ -51,7 +53,7 @@ if (-not $Messages) {
 # =============================================================================
 
 # วนลูปเพื่อหาไฟล์แนบที่ถูกต้อง (.csv)
-$TargetAttachment = $Messages | ForEach-Object {
+$TargetAttachment = $messages | ForEach-Object {
     $msg = $_
 
     # ตรวจสอบ Sender และ Subject อีกครั้งเพื่อความปลอดภัย (Double Check)
@@ -68,7 +70,7 @@ $TargetAttachment = $Messages | ForEach-Object {
 
     # เลือกไฟล์ CSV ที่ชื่อขึ้นต้นด้วย Available_patches_
     $attachments | Where-Object {
-        $_.Name -like "Available_patches_*.csv"
+        $_.Name -like "Available*.csv"
     } | Select-Object -First 1
 
 } | Select-Object -First 1  
@@ -181,6 +183,7 @@ catch {
     Write-Error $_
 }
 finally {
+    $messages | ForEach-Object{Move-MgUserMessage -UserId $Global:userid -MessageId $_.id -DestinationId $Global:mailfolderId_move}
     Write-Host ""
     Write-Host "Process completed. Window will close in 10 seconds..."
     Start-Sleep 10
