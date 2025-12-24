@@ -1,11 +1,9 @@
 Import-Module Microsoft.Graph.Mail
-
 try {
     if (-not $PSScriptRoot) {
     $PSScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 }
 Set-Location -LiteralPath $PSScriptRoot
-
 $RootPath = Split-Path -Parent $PSScriptRoot
 # import function.ps1
 . "$RootPath\function.ps1"
@@ -32,15 +30,15 @@ $test_massage = Get-MgUserMailFolderMessage `
 -All
 $messages = Get-MgUserMailFolderMessage `
     -UserId $Global:userid `
-    -MailFolderId  $env:mailFolderId `
+    -MailFolderId   $env:mailfolderId  `
     -Filter "from/emailAddress/address eq 'no-reply@pandasecurity.com' and receivedDateTime ge $today and contains(subject,'history')"`
-    -All  `
-    | Sort-Object receivedDateTime -Descending | `
-    Select-Object -First 1
+    -All | Sort-Object receivedDateTime -Descending | Select-Object -First 1
+
+
 
 if (-not $messages) {
     Write-Error "No messages found, exiting script."
-    exit
+    return
 }
 $csvContent = $messages | ForEach-Object {
     $message = $_
