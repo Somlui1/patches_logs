@@ -37,7 +37,7 @@ $TodayDate = (Get-Date).ToString("yyyy-MM-dd")
 # ดึงอีเมลจาก Inbox ตามเงื่อนไข (ผู้ส่ง, หัวข้อ, วันที่)
 $messages = Get-MgUserMailFolderMessage `
     -UserId $TargetUserId  `
-    -MailFolderId $Global:mailfolderId `
+    -MailFolderId $env:mailfolderId `
     -Filter "from/emailAddress/address eq '$($SenderConfig.EmailAddress)' and subject eq '$($SenderConfig.Subject)' and receivedDateTime ge $TodayDate"  `
     -All  `
     | Sort-Object receivedDateTime -Descending | `
@@ -183,7 +183,7 @@ catch {
     Write-Error $_
 }
 finally {
-    $messages | ForEach-Object{Move-MgUserMessage -UserId $Global:userid -MessageId $_.id -DestinationId $Global:mailfolderId_move}
+    $messages | ForEach-Object{Move-MgUserMessage -UserId $Global:userid -MessageId $_.id -DestinationId $env::mailfolderId_move}
     Write-Host ""
     Write-Host "Process completed. Window will close in 10 seconds..."
     Start-Sleep 10

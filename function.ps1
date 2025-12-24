@@ -5,27 +5,30 @@ $EnvFilePath = Join-Path -Path $RootPath -ChildPath ".env"
 if (Test-Path $EnvFilePath) {
     Get-Content $EnvFilePath | ForEach-Object {
         $line = $_.Trim()
-        # กรองเอาเฉพาะบรรทัดที่มีข้อมูล (ไม่เอา Comment หรือบรรทัดว่าง)
-        if ($line -notmatch "^#" -and $line -ne "") {
-            # แยก Key และ Value ด้วยเครื่องหมาย =
-            # การใช้ Trim() จะช่วยตัดช่องว่างรอบๆ = ที่คุณมีในไฟล์ออกให้เองครับ
+
+        if ($line -and $line -notmatch '^#') {
             $key, $value = $line -split '=', 2
-            # ทำความสะอาดข้อมูล
-            $key = $key.Trim() 
-            $value = $value.Trim().Trim('"').Trim("'") # ตัด space และตัด " หรือ ' ออก
-            # สร้างตัวแปร Global
+            $key   = $key.Trim()
+            $value = $value.Trim().Trim('"').Trim("'")
+
             if ($key) {
-                # ใช้คำสั่งนี้เพื่อสร้างตัวแปรระดับ Global
+                # 🔹 ใช้กับ script เดิม (pwsh x64)
                 Set-Variable -Name $key -Value $value -Scope Global
-                # (Option) แสดงผลเพื่อ debug ดูว่าค่าเข้าไหม
-                # Write-Host "Set Global Variable: `$$key = $value" -ForegroundColor Gray
+
+                # 🔹 ใช้กับ x86 / start-process / child powershell
+                [System.Environment]::SetEnvironmentVariable(
+                    $key,
+                    $value,
+                    "Process"
+                )
             }
         }
     }
-   #Write-Host "Imported .env to Global Variables successfully." -ForegroundColor Green
-} else {
+}
+else {
     Write-Warning "File .env not found at $EnvFilePath"
 }
+
 function Connect-MicrosoftGraphCert {
     [CmdletBinding()]
     param (
@@ -37,6 +40,27 @@ function Connect-MicrosoftGraphCert {
         [string] $CertificateThumbprint  = $global:Thumbprint
     )
     try {
+        $cert = Get-ChildItem Cert:\CurrentUser\My |
+            Where-Object {
+                $_.Subject -like 'CN=GraphAPI*' -and
+                $_.HasPrivateKey -and
+                $_.NotAfter -gt (Get-Date)
+            } |
+            Sort-Object NotAfter -Descending |
+            Select-Object -First 1
+
+        if ($cert) {
+            $CertificateThumbprint = $cert.Thumbprint
+            Write-Verbose "Using local certificate: $($cert.Subject)"
+        }
+        elseif (-not $CertificateThumbprint) {
+            throw "Certificate CN=GraphAPI not found and global Thumbprint is empty"
+        }
+        
+        else {
+            Write-Verbose "Using global Thumbprint fallback"
+        }
+    
         Write-Verbose "Import Microsoft.Graph.Mail module"
         Import-Module Microsoft.Graph.Mail -ErrorAction Stop
         Write-Verbose "Connecting to Microsoft Graph (App-only Certificate)"

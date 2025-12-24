@@ -1,7 +1,5 @@
 ## 📊 System Architecture
-
 Program Overview
-
 <table align="center">
   <tr>
     <td align="center">

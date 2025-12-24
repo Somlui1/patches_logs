@@ -9,4 +9,4 @@ $today = (Get-Date).ToString("yyyy-MM-dd")
 $checklist_folderId = "AAMkADg0ZGMxNWJhLTEwYmYtNGZlOC1iZTNhLThkMDA1MjlkZDJkZAAuAAAAAABgMXAAPDLQT4HfJxmfhRG8AQBkvK5jCAHYT6tzQpMQ0K-pAAAAABK0AAA="
 $subfolder = Get-MgUserMailFolderChildFolder -MailFolderId $checklist_folderId -UserId $userid -All
 
-
+#Get-MgUserMailFolderChildFolder -UserId $userid -MailFolderId 'AAMkADg0ZGMxNWJhLTEwYmYtNGZlOC1iZTNhLThkMDA1MjlkZDJkZAAuAAAAAABgMXAAPDLQT4HfJxmfhRG8AQBkvK5jCAHYT6tzQpMQ0K-pAACbQHE8AAA=' -All
