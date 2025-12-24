@@ -24,4 +24,4 @@ Error Handling: The script includes error handling to manage exceptions and ensu
 
 This script is essential for maintaining an organized record of patch history and automating the reporting process, thereby enhancing operational efficiency.
 
-![Flowchart](.table1_history/table 1 - Hitory_patch.jpg)
+![Flowchart](./table1_history/table%201%20-%20Hitory_patch.jpg)
