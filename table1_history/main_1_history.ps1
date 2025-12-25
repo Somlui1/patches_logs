@@ -28,6 +28,7 @@ $test_massage = Get-MgUserMailFolderMessage `
 -UserId $Global:userid `
 -MailFolderId ($childfolder | Where-Object { $_.DisplayName -like 'GraphMail' }).Id`
 -All
+
 $messages = Get-MgUserMailFolderMessage `
     -UserId $Global:userid `
     -MailFolderId   $env:mailfolderId  `
@@ -129,6 +130,23 @@ $results = foreach ($row in $rawObjects) {
 }
 
 
+
+if ($results.count -lt 1200)
+{
+ $payload = @{
+        host = $env:COMPUTERNAME
+        table = "path_history_by_computer"
+            data  = @($results)
+        }
+    $jsonBody = Formatting -Payload $payload
+    # 3. ส่งไป server
+    $response = Newsend-JsonPayload `
+        -Url "http://10.10.3.215:8181/watchguard/patch" `
+        -JsonBody $jsonBody
+    Write-Host "Response:" $response
+return
+}
+
 $chunks = Chunked -Iterable $results -Size 1200
 #$chunks = Chunked -Iterable $requests -Size 1200
 foreach ($chunk in $chunks) {
@@ -136,7 +154,7 @@ foreach ($chunk in $chunks) {
     $payload = @{
         host = $env:COMPUTERNAME
         table = "path_history_by_computer"
-            data  = $chunk
+            data  = @($chunk)
         }
     # 2. แปลงเป็น JSON
     $jsonBody = Formatting -Payload $payload
