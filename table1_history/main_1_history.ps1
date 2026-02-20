@@ -86,6 +86,10 @@ try {
     $aes.IV = [byte[]]::new(16) 
     # 2️⃣ Single Pass Processing
     # Using a 'foreach' loop is significantly faster than the pipeline (| ForEach-Object) for large datasets
+    
+    # คอลัมน์ที่ใช้สร้าง unique hash
+    $hashColumns = @('Computer', 'Patch', 'Criticality')
+    
     $results = foreach ($row in $rawObjects) {
         # Filter immediately
         if ($row.Installation -ne "Installed") { continue }
